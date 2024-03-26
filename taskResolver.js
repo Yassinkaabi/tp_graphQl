@@ -1,66 +1,38 @@
-// taskResolver.js
-let tasks = [
-    {
-        id: '1',
-        title: 'Développement Front-end pour Site E-commerce',
-        description: 'Créer une interface utilisateur réactive en utilisant React etRedux pour un site e- commerce.',
-        completed: false,
-        duration: 11,
-    },
-    {
-        id: '2',
-        title: 'Développement Back-end pour Authentification Utilisateur',
-        description: 'Implémenter un système authentification et autorisation pour uneapplication web en utilisant Node.js, Express, et Passport.js',
-        completed: false,
-        duration: 11,
-    },
-    {
-        id: '3',
-        title: 'Tests et Assurance Qualité pour Application Web',
-        description: 'Développer et exécuter des plans de test et des cas de testcomplets.',
-        completed: false,
-        duration: 11
-    }
-];
+const Task = require('./taskModel');
+
 const taskResolver = {
-    task: ({ id }) => tasks.find(task => task.id === id),
-    tasks: () => tasks,
-    addTask: ({ title, description, completed, duration }) => {
-        const task = {
-            id: String(tasks.length + 1),
-            title,
-            description,
-            completed,
-            duration,
-        };
-        tasks.push(task);
+    task: async ({ id }) => await Task.findById(id),
+    tasks: async () => await Task.find(),
+    addTask: async ({ title, description, completed, duration }) => {
+        const task = new Task({ title, description, completed, duration });
+        await task.save();
         return task;
     },
-    completeTask: ({ id }) => {
-        const taskIndex = tasks.findIndex(task => task.id === id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex].completed = true;
-            return tasks[taskIndex];
+    completeTask: async ({ id }) => {
+        const task = await Task.findById(id);
+        if (task) {
+            task.completed = true;
+            await task.save();
+            return task;
         }
         return null;
     },
-
-    changeDescription: ({ id, newDescription }) => {
-        const taskIndex = tasks.findIndex(task => task.id === id);
-        if (taskIndex !== -1) {
-            tasks[taskIndex].description = newDescription;
-            return tasks[taskIndex];
+    changeDescription: async ({ id, newDescription }) => {
+        const task = await Task.findById(id);
+        if (task) {
+            task.description = newDescription;
+            await task.save();
+            return task;
         }
-        console.log("Tâche non trouvée");
+        throw new Error("Tâche non trouvée");
     },
-
-    deleteTask: ({ id }) => {
-        const taskIndex = tasks.findIndex(task => task.id === id);
-        if (taskIndex !== -1) {
-            const deletedTask = tasks.splice(taskIndex, 1)[0];
-            return deletedTask;
+    deleteTask: async ({ id }) => {
+        const task = await Task.findByIdAndDelete(id);
+        if (!task) {
+            throw new Error("Tâche non trouvée");
         }
-        console.log("Tâche non trouvée");
+        return task;
     },
 };
+
 module.exports = taskResolver;
